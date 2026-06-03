@@ -36,7 +36,7 @@ export function useOrders(limit: number = 20) {
       }
       return orderService.getUserOrders(user.id, limit, pageParam)
     },
-    getNextPageParam: (lastPage, pages) => {
+    getNextPageParam: (lastPage, _pages) => {
       if (!lastPage?.data) return undefined
       const { hasMore, offset, limit } = lastPage.data
       return hasMore ? offset + limit : undefined
