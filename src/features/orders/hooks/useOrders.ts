@@ -56,18 +56,42 @@ export function useOrder(orderId: string) {
   return useQuery({
     queryKey: [QUERY_KEYS.ORDER, orderId, authUser?.id],
     queryFn: async () => {
-      console.log('Fetching order:', orderId, 'for user:', authUser?.id)
-      if (!authUser?.id || !isAuthenticated) {
+      console.log('🔍 useOrder - Fetching order:', orderId, 'for user:', authUser?.id)
+      
+      if (!authUser?.id) {
+        console.error('❌ useOrder - No user authenticated')
         throw new Error('User not authenticated')
       }
+      
+      if (!isAuthenticated) {
+        console.error('❌ useOrder - User not authenticated')
+        throw new Error('User not authenticated')
+      }
+      
+      if (!orderId) {
+        console.error('❌ useOrder - No order ID provided')
+        throw new Error('Invalid order ID')
+      }
+      
       const response = await orderService.getOrderById(orderId, authUser.id)
-      if (response.error) throw new Error(response.error)
-      if (!response.data) throw new Error('Order not found')
+      
+      if (response.error) {
+        console.error('❌ useOrder - Service error:', response.error)
+        throw new Error(response.error)
+      }
+      
+      if (!response.data) {
+        console.error('❌ useOrder - No order data returned')
+        throw new Error('Order not found')
+      }
+      
+      console.log('✅ useOrder - Order fetched successfully:', response.data)
       return response.data
     },
     enabled: !!orderId && !!authUser?.id && isAuthenticated,
     staleTime: 1 * 60 * 1000,
-    retry: 1,
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   })
 }
 
