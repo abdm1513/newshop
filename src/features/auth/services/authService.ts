@@ -46,6 +46,7 @@ export const authService = {
           phone_number: formattedPhone,
           email: email,
           is_verified: false,
+          address: '',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         },
@@ -93,6 +94,7 @@ export const authService = {
         phone_number: profile?.phone_number || authData.user.phone || formattedPhone,
         email: profile?.email || authData.user.email,
         is_verified: false,
+        address: profile?.address || '',
         created_at: authData.user.created_at,
         updated_at: authData.user.updated_at,
       }
@@ -144,9 +146,10 @@ export const authService = {
       const userData: User = {
         id: user.id,
         name: profile?.name || user.user_metadata.name,
-        phone_number: profile?.phone_number || user.phone,
+        phone_number: profile?.phone_number || user.phone || '',
         email: profile?.email || user.email,
         is_verified: false,
+        address: profile?.address || '',
         created_at: user.created_at,
         updated_at: user.updated_at,
       }
@@ -163,14 +166,17 @@ export const authService = {
 
   async updateProfile(userId: string, updates: Partial<User>): Promise<ApiResponse<User>> {
     try {
+      const updateData: any = {
+        updated_at: new Date().toISOString(),
+      }
+      
+      if (updates.name !== undefined) updateData.name = updates.name
+      if (updates.phone_number !== undefined) updateData.phone_number = updates.phone_number
+      if (updates.address !== undefined) updateData.address = updates.address
+      
       const { data, error } = await supabase
         .from('profiles')
-        .update({
-          name: updates.name,
-          phone_number: updates.phone_number,
-          address: updates.address,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq('id', userId)
         .select()
         .single()

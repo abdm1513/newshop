@@ -1,5 +1,3 @@
-// // types/auth.types.ts
-
 import { Session } from '@supabase/supabase-js'
 import { SupabaseRow } from './global.types'
 

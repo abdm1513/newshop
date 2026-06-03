@@ -21,7 +21,6 @@ export function useOrders(limit: number = 20) {
     queryKey: [QUERY_KEYS.ORDERS, user?.id],
     queryFn: ({ pageParam = 0 }) => {
       console.log('Fetching orders page:', pageParam, 'User ID:', user?.id)
-      // Don't fetch if no user
       if (!user?.id || !isAuthenticated) {
         console.log('No user authenticated, returning empty orders')
         return Promise.resolve({
@@ -37,7 +36,7 @@ export function useOrders(limit: number = 20) {
       }
       return orderService.getUserOrders(user.id, limit, pageParam)
     },
-    getNextPageParam: (lastPage, _pages) => {
+    getNextPageParam: (lastPage, pages) => {
       if (!lastPage?.data) return undefined
       const { hasMore, offset, limit } = lastPage.data
       return hasMore ? offset + limit : undefined
@@ -51,22 +50,26 @@ export function useOrders(limit: number = 20) {
   })
 }
 
-// Rest of the hooks remain the same...
-export function useOrder(orderId: string) {
-  const { user, isAuthenticated } = useAuth()
+export function useOrder(orderId: string, userId?: string) {
+  const { user: authUser, isAuthenticated } = useAuth()
+  // Use provided userId or fallback to auth user
+  const effectiveUserId = userId || authUser?.id
   
   return useQuery({
-    queryKey: [QUERY_KEYS.ORDER, orderId, user?.id],
+    queryKey: [QUERY_KEYS.ORDER, orderId, effectiveUserId],
     queryFn: async () => {
-      if (!user?.id || !isAuthenticated) {
+      console.log('Fetching order:', orderId, 'for user:', effectiveUserId)
+      if (!effectiveUserId || !isAuthenticated) {
         throw new Error('User not authenticated')
       }
-      const response = await orderService.getOrderById(orderId, user.id)
+      const response = await orderService.getOrderById(orderId, effectiveUserId)
       if (response.error) throw new Error(response.error)
+      if (!response.data) throw new Error('Order not found')
       return response.data
     },
-    enabled: !!orderId && !!user?.id && isAuthenticated,
+    enabled: !!orderId && !!effectiveUserId && isAuthenticated,
     staleTime: 1 * 60 * 1000,
+    retry: 1,
   })
 }
 

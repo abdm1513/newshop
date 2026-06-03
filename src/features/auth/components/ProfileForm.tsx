@@ -6,6 +6,7 @@ import { validateName, validatePhoneNumber, formatPhoneNumber } from '../utils/a
 import { showSuccess, showError, showLoading } from '@/utils/toast'
 import { cn } from '@/utils/cn'
 import toast from 'react-hot-toast'
+import type { User as UserType } from '@/types'  // Import as type with alias
 
 export function ProfileForm() {
   const { user, refreshUser, setUser } = useAuth()
@@ -56,7 +57,7 @@ export function ProfileForm() {
     try {
       const formattedPhone = formData.phone_number ? formatPhoneNumber(formData.phone_number) : undefined
       
-      const updates = {
+      const updates: Partial<UserType> = {
         name: formData.name,
         phone_number: formattedPhone,
         address: formData.address,
@@ -68,7 +69,12 @@ export function ProfileForm() {
         showError(response.error)
       } else if (response.data) {
         // Update the user in the store with the new address
-        const updatedUser = { ...user, ...updates, address: formData.address }
+        const updatedUser: UserType = { 
+          ...user, 
+          name: formData.name,
+          phone_number: formattedPhone || user.phone_number,
+          address: formData.address 
+        }
         setUser(updatedUser)
         await refreshUser()
         showSuccess('መገለጫዎ በሚገባ ተዘምኗል')
