@@ -90,9 +90,9 @@ export const authService = {
 
       const user: User = {
         id: authData.user.id,
-        name: profile?.name || authData.user.user_metadata.name,
+        name: profile?.name || authData.user.user_metadata?.name || '',
         phone_number: profile?.phone_number || authData.user.phone || formattedPhone,
-        email: profile?.email || authData.user.email,
+        email: profile?.email || authData.user.email || '',
         is_verified: false,
         address: profile?.address || '',
         created_at: authData.user.created_at,
@@ -145,9 +145,9 @@ export const authService = {
 
       const userData: User = {
         id: user.id,
-        name: profile?.name || user.user_metadata.name,
+        name: profile?.name || user.user_metadata?.name || '',
         phone_number: profile?.phone_number || user.phone || '',
-        email: profile?.email || user.email,
+        email: profile?.email || user.email || '',
         is_verified: false,
         address: profile?.address || '',
         created_at: user.created_at,
@@ -183,7 +183,11 @@ export const authService = {
 
       if (error) throw error
 
-      return { data: data as User, error: null }
+      // Ensure phone_number is always a string
+      const userData = data as User
+      if (!userData.phone_number) userData.phone_number = ''
+
+      return { data: userData, error: null }
     } catch (error) {
       console.error('Update profile error:', error)
       return {

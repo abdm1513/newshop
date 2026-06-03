@@ -6,7 +6,7 @@ import { validateName, validatePhoneNumber, formatPhoneNumber } from '../utils/a
 import { showSuccess, showError, showLoading } from '@/utils/toast'
 import { cn } from '@/utils/cn'
 import toast from 'react-hot-toast'
-import type { User as UserType } from '@/types'  // Import as type with alias
+import type { User as UserType } from '@/types'
 
 export function ProfileForm() {
   const { user, refreshUser, setUser } = useAuth()
@@ -55,7 +55,7 @@ export function ProfileForm() {
     const loadingToast = showLoading('እባክዎ ይጠብቁ...')
     
     try {
-      const formattedPhone = formData.phone_number ? formatPhoneNumber(formData.phone_number) : undefined
+      const formattedPhone = formData.phone_number ? formatPhoneNumber(formData.phone_number) : user.phone_number
       
       const updates: Partial<UserType> = {
         name: formData.name,

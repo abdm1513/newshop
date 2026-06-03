@@ -50,24 +50,22 @@ export function useOrders(limit: number = 20) {
   })
 }
 
-export function useOrder(orderId: string, userId?: string) {
+export function useOrder(orderId: string) {
   const { user: authUser, isAuthenticated } = useAuth()
-  // Use provided userId or fallback to auth user
-  const effectiveUserId = userId || authUser?.id
   
   return useQuery({
-    queryKey: [QUERY_KEYS.ORDER, orderId, effectiveUserId],
+    queryKey: [QUERY_KEYS.ORDER, orderId, authUser?.id],
     queryFn: async () => {
-      console.log('Fetching order:', orderId, 'for user:', effectiveUserId)
-      if (!effectiveUserId || !isAuthenticated) {
+      console.log('Fetching order:', orderId, 'for user:', authUser?.id)
+      if (!authUser?.id || !isAuthenticated) {
         throw new Error('User not authenticated')
       }
-      const response = await orderService.getOrderById(orderId, effectiveUserId)
+      const response = await orderService.getOrderById(orderId, authUser.id)
       if (response.error) throw new Error(response.error)
       if (!response.data) throw new Error('Order not found')
       return response.data
     },
-    enabled: !!orderId && !!effectiveUserId && isAuthenticated,
+    enabled: !!orderId && !!authUser?.id && isAuthenticated,
     staleTime: 1 * 60 * 1000,
     retry: 1,
   })

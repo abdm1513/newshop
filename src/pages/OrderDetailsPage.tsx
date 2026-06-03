@@ -1,54 +1,22 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { OrderDetails, useOrder } from '@/features/orders'
-import { useAuth } from '@/features/auth'
 import { PageLoader } from '@/components/feedback/PageLoader'
 import { ErrorState } from '@/components/feedback/ErrorState'
-import { supabase } from '@/lib/supabase'
-import { useEffect, useState } from 'react'
 
-export default function OrderDetailsPage() {
+export function OrderDetailsPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { user, isAuthenticated } = useAuth()
-  const [debugOrder, setDebugOrder] = useState<any>(null)
   
-  const { data: order, isLoading, error } = useOrder(id!, user?.id)
+  // useOrder expects only orderId, it gets userId from auth context
+  const { data: order, isLoading, error } = useOrder(id!)
 
-  // Debug: Direct fetch to see what's happening
-  useEffect(() => {
-    const debugFetch = async () => {
-      if (!id || !user?.id) return
-      
-      console.log('🔍 Debug fetching order:', id, 'for user:', user.id)
-      
-      const { data, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('id', id)
-        .single()
-      
-      console.log('🔍 Direct fetch result:', { data, error })
-      setDebugOrder(data)
-    }
-    
-    debugFetch()
-  }, [id, user])
-
-  console.log('OrderDetailsPage state:', { 
-    orderId: id, 
-    userId: user?.id,
-    isAuthenticated,
-    isLoading,
-    hasOrder: !!order,
-    error,
-    debugOrder 
-  })
-
+  // Show loading state
   if (isLoading) {
     return <PageLoader />
   }
 
+  // Show error state
   if (error || !order) {
     return (
       <div className="container-custom py-4 sm:py-8">
@@ -65,12 +33,6 @@ export default function OrderDetailsPage() {
             message={error?.message || "እባክዎ በኋላ ይሞክሩ"}
             onRetry={() => window.location.reload()}
           />
-          {debugOrder && (
-            <div className="mt-4 p-4 bg-gray-100 rounded-lg">
-              <p className="text-sm font-mono">Debug: Order found in direct query but not in hook</p>
-              <pre className="text-xs overflow-auto">{JSON.stringify(debugOrder, null, 2)}</pre>
-            </div>
-          )}
         </div>
       </div>
     )
@@ -79,6 +41,7 @@ export default function OrderDetailsPage() {
   return (
     <div className="container-custom py-4 sm:py-8">
       <div className="max-w-4xl mx-auto">
+        {/* Back Button */}
         <button
           onClick={() => navigate('/orders')}
           className="flex items-center gap-2 text-gray-600 hover:text-green-600 transition mb-6"

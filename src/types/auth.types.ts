@@ -6,7 +6,7 @@ export type AuthStatus = 'idle' | 'loading' | 'authenticated' | 'unauthenticated
 export interface User extends SupabaseRow {
   name: string
   email?: string
-  phone_number: string
+  phone_number: string // Make required, not optional
   address?: string
   is_verified: boolean
 }
